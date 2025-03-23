@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор прибутку СЕС</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        input, button { margin: 10px 0; padding: 8px; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Калькулятор прибутку сонячної електростанції</h2>
+
+        <label for="pc">Середньодобова потужність (МВт):</label>
+        <input type="number" id="pc" value="5" step="0.01">
+
+        <label for="sigma">Початкове середньоквадратичне відхилення (МВт):</label>
+        <input type="number" id="sigma" value="1" step="0.01">
+
+        <label for="sigma2">Вдосконалене середньоквадратичне відхилення (МВт):</label>
+        <input type="number" id="sigma2" value="0.25" step="0.01">
+
+        <label for="price">Вартість електроенергії (грн/кВт·год):</label>
+        <input type="number" id="price" value="7" step="0.01">
+
+        <button onclick="calculateProfit()">Розрахувати прибуток</button>
+
+        <h3 id="result">Прибуток: 0 грн</h3>
+    </div>
+
+    <script>
+        function calculateProfit() {
+            const Pc = parseFloat(document.getElementById('pc').value);
+            const sigma1 = parseFloat(document.getElementById('sigma').value);
+            const sigma2 = parseFloat(document.getElementById('sigma2').value);
+            const price = parseFloat(document.getElementById('price').value);
+
+            const hours = 24; // Кількість годин у добі
+            const delta = 0.25; // Межі ±5% (Pc * 0.05)
+
+            // Функція для розрахунку частки енергії без небалансів
+            function calcShare(sigma) {
+                return (delta / (sigma * Math.sqrt(2 * Math.PI))) * Math.exp(-Math.pow(delta, 2) / (2 * Math.pow(sigma, 2)));
+            }
+
+            const share1 = calcShare(sigma1) * 100; // Частка до вдосконалення
+            const share2 = calcShare(sigma2) * 100; // Частка після вдосконалення
+
+            // Розрахунок енергії
+            const W1 = Pc * hours * (share1 / 100);
+            const W2 = Pc * hours * (1 - share1 / 100);
+
+            const W3 = Pc * hours * (share2 / 100);
+            const W4 = Pc * hours * (1 - share2 / 100);
+
+            // Розрахунок прибутку
+            const P1 = W1 * price * 1000;
+            const Sh1 = W2 * price * 1000;
+
+            const P2 = W3 * price * 1000;
+            const Sh2 = W4 * price * 1000;
+
+            const profit = (P2 - Sh2) - (P1 - Sh1);
+
+            document.getElementById('result').textContent = `Прибуток: ${profit.toFixed(2)} грн`;
+        }
+    </script>
+</body>
+</html>
